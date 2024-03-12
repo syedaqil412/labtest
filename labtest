@@ -1,0 +1,118 @@
+//import the respective package
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+
+//driver class
+public class EmployeeSalaryProcessor 
+{
+    //driver method
+    public static void main(String[] args) 
+    {
+        String inputFile = "employeeSalaries.txt";
+        String outputFile = "employeeData.txt";
+
+        try 
+        {
+            //set the input/output file
+            ArrayList<Employee> employees = readEmployeeData(inputFile);
+            processEmployeeData(employees);
+            writeEmployeeData(employees, outputFile);
+        } catch (IOException e) {
+            System.out.println("Error occurred while processing employee data: " + e.getMessage());
+        }
+    }
+
+    private static ArrayList<Employee> readEmployeeData(String inputFile) throws IOException 
+    {
+        ArrayList<Employee> employees = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+
+        String line;
+        while ((line = reader.readLine()) != null) 
+        {
+            String[] data = line.split(",");
+            if (data.length != 3) 
+            {
+                throw new IOException("Invalid data format in input file");
+            }
+            String name = data[0].trim();
+            double baseSalary = Double.parseDouble(data[1].trim());
+            int yearsOfService = Integer.parseInt(data[2].trim());
+            employees.add(new Employee(name, baseSalary, yearsOfService));
+        }
+
+        reader.close();
+        return employees;
+    }
+
+    private static void processEmployeeData(ArrayList<Employee> employees) 
+    {
+        for (Employee employee : employees) 
+        {
+            employee.calculateAnnualSalary();
+        }
+
+        Employee topPerformer = employees.stream()
+                .max(Comparator.comparing(Employee::getAnnualSalary))
+                .orElse(null);
+
+        Employee leastYearsOfService = employees.stream()
+                .min(Comparator.comparing(Employee::getYearsOfService))
+                .orElse(null);
+
+        System.out.println("Top-performing employee: " + topPerformer);
+        System.out.println("Employee with least years of service: " + leastYearsOfService);
+    }
+
+    private static void writeEmployeeData(ArrayList<Employee> employees, String outputFile) throws IOException 
+    {
+        FileWriter writer = new FileWriter(outputFile);
+
+        for (Employee employee : employees) 
+        {
+            writer.write(employee.toString() + "\n");
+        }
+
+        writer.close();
+    }
+}
+
+class Employee 
+{
+    private String name;
+    private double baseSalary;
+    private int yearsOfService;
+    private double annualSalary;
+
+    public Employee(String name, double baseSalary, int yearsOfService) 
+    {
+        this.name = name;
+        this.baseSalary = baseSalary;
+        this.yearsOfService = yearsOfService;
+    }
+
+    public void calculateAnnualSalary() 
+    {
+        this.annualSalary = baseSalary + (baseSalary * 0.05 * yearsOfService);
+    }
+
+    public double getAnnualSalary() 
+    {
+        return annualSalary;
+    }
+
+    public int getYearsOfService() 
+    {
+        return yearsOfService;
+    }
+
+    @Override
+    public String toString() 
+    {
+        return name + ", " + baseSalary + ", " + yearsOfService + ", " + annualSalary;
+    }
+}
